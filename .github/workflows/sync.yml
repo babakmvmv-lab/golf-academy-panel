@@ -1,4 +1,4 @@
-name: Sync app from main repo
+name: Build & sync app from main repo
 on:
   schedule:
     - cron: '17 3 * * *'
@@ -6,28 +6,25 @@ on:
 permissions:
   contents: write
 jobs:
-  sync:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Fetch latest app files from golf-academy-pro
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install build dependency
+        run: pip install Pillow
+      - name: Build the panel app from the main repo source
         run: |
           set -e
-          python3 - <<'PY'
-          import json, urllib.request, os
-          base = 'https://raw.githubusercontent.com/babakmvmv-lab/golf-academy-pro/main'
-          tree = json.load(urllib.request.urlopen('https://api.github.com/repos/babakmvmv-lab/golf-academy-pro/git/trees/main?recursive=1'))
-          wanted = ['GolfAcademy_PRO.html', 'favicon.ico', 'images/academy-logo.jpg']
-          wanted += [t['path'] for t in tree['tree'] if t['path'].startswith('images/pay/')]
-          for path in wanted:
-              os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
-              urllib.request.urlretrieve(base + '/' + path, path)
-              print('fetched', path)
-          PY
-          cp GolfAcademy_PRO.html index_app_tmp.html
-          cp index_app_tmp.html index.html && rm index_app_tmp.html
-      - name: Keep redirect stub for the old deep link
-        run: |
+          git clone --depth 1 https://github.com/babakmvmv-lab/golf-academy-pro.git /tmp/main
+          python3 /tmp/main/source/build_standalone.py
+          cp /tmp/main/source/GolfAcademy_PRO.html index.html
+          cp /tmp/main/favicon.ico .
+          mkdir -p images/pay
+          cp /tmp/main/images/academy-logo.jpg images/
+          cp /tmp/main/images/pay/*.png images/pay/
           printf '%s' '<!doctype html><html lang="fa"><head><meta charset="utf-8"><title>پنل اعضا</title><meta http-equiv="refresh" content="0; url=./"></head><body><script>location.replace("./");</script></body></html>' > GolfAcademy_PRO.html
           cp GolfAcademy_PRO.html 404.html
       - name: Commit if changed
@@ -35,4 +32,4 @@ jobs:
           git config user.name "sync-bot"
           git config user.email "sync-bot@users.noreply.github.com"
           git add -A
-          git diff --cached --quiet && echo "no changes" || (git commit -m "sync: app from golf-academy-pro" && git push)
+          git diff --cached --quiet && echo "no changes" || (git commit -m "sync: rebuild app from golf-academy-pro source" && git push)
