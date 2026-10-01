@@ -21,10 +21,15 @@ jobs:
           git clone --depth 1 https://github.com/babakmvmv-lab/golf-academy-pro.git /tmp/main
           python3 /tmp/main/source/build_standalone.py
           cp /tmp/main/source/GolfAcademy_PRO.html index.html
-          cp /tmp/main/favicon.ico .
-          mkdir -p images/pay
-          cp /tmp/main/images/academy-logo.jpg images/
-          cp /tmp/main/images/pay/*.png images/pay/
+          cp /tmp/main/favicon.ico /tmp/main/favicon.webp .
+          cp /tmp/main/mis_sat.webp /tmp/main/mis_topo.webp .
+          mkdir -p source/assets
+          cp /tmp/main/source/assets/puttclub_logo.webp /tmp/main/source/assets/puttclub_favicon.webp source/assets/
+          find /tmp/main/images -type f -name '*.webp' -print0 | while IFS= read -r -d '' asset; do
+            rel=${asset#/tmp/main/images/}
+            mkdir -p "images/$(dirname "$rel")"
+            cp "$asset" "images/$rel"
+          done
           printf '%s' '<!doctype html><html lang="fa"><head><meta charset="utf-8"><title>پنل اعضا</title><meta http-equiv="refresh" content="0; url=./"></head><body><script>location.replace("./");</script></body></html>' > GolfAcademy_PRO.html
           cp GolfAcademy_PRO.html 404.html
       - name: Commit if changed
