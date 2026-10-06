@@ -3599,6 +3599,24 @@ svg.leaflet-image-layer.leaflet-interactive path {
               }
               return;
             }
+            if (COURSE_MERGE[r.k]) {
+              /* رجیستری زمین و نقشهٔ KML هر دو چندرکوردی‌اند. pull نیز باید merge کند:
+                 رکوردهای محلیِ غایب از ابر حفظ و برای ارسال دوباره صف می‌شوند؛ نسخهٔ
+                 جدیدترِ همان زمین برنده است تا گوشی خالی نتواند زمین لپ‌تاپ را حذف کند. */
+              var localRaw = L.getItem(r.k), remoteVal = decode(r.v);
+              var mergedVal = mergeCourseValue(r.k, localRaw, remoteVal, false);
+              var uploadMerged = !sameJsonValue(mergedVal, remoteVal);
+              try {
+                if (!sameJsonValue(mergedVal, localRaw)) {
+                  L.setItem(r.k, mergedVal);
+                  applied++;
+                }
+                ts[r.k] = r.updated_at;
+                if (uploadMerged) d[r.k] = localStamp();
+                else delete d[r.k];
+              } catch (e) {}
+              return;
+            }
             if (!remoteNewer && localDirty === undefined && L.getItem(r.k) !== null) return;
             if (remoteNewer) {
               var newVal = decode(r.v);
@@ -3613,6 +3631,12 @@ svg.leaflet-image-layer.leaflet-interactive path {
                 if (localDirty) delete d[r.k];
               } catch (e) {}
             }
+          });
+          /* اگر این دستگاه زمین/نقشه دارد ولی کلید هنوز در ابر ساخته نشده، آن را هم صف کن. */
+          var remoteKeys = {};
+          (rows || []).forEach(function (r) { if (r && r.k) remoteKeys[r.k] = 1; });
+          Object.keys(COURSE_MERGE).forEach(function (k) {
+            if (!remoteKeys[k] && L.getItem(k) !== null && !d[k]) d[k] = localStamp();
           });
           stripSpStorage(L);
           jwrite(DIRTY_KEY, d);
@@ -3645,9 +3669,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
      خطای یک کلید مانع ثبت کلیدهای سالم نیست. مسیر REST نوشتن fallback نیست:
      خطای اصلی ga-sync نباید با خطای مجوز جدول پوشانده یا موفق تلقی شود. */
   var SP_MERGE = { ga_sp_sessions: 1, ga_sp_shots: 1, ga_sp_tomb: 1 };
-  /* زمین‌ها یک کلید آرایه‌ای‌اند، اما merge باید بر اساس courseId انجام شود؛
-     LWW کل آرایه می‌تواند افزودن/بایگانی هم‌زمان دستگاه دیگر را پاک کند. */
-  var COURSE_MERGE = { ga_courses: 1 };
+  /* هر دو کلید چندزمینی‌اند؛ LWW کلِ ga_courses یا ga_course_geo ممکن است
+     زمینی را که فقط روی دستگاه دیگر است از ابر حذف کند. */
+  var COURSE_MERGE = { ga_courses: 1, ga_course_geo: 1 };
   function courseRows(raw){
     try {
       var value = typeof raw === 'string' ? JSON.parse(raw || '[]') : raw;
@@ -3686,6 +3710,46 @@ svg.leaflet-image-layer.leaflet-interactive path {
     });
     return JSON.stringify(Object.keys(merged).map(function (id) { return merged[id]; })
       .sort(function (a, b) { return a.courseId - b.courseId; }));
+  }
+  function courseGeoMap(raw){
+    try {
+      var value = typeof raw === 'string' ? JSON.parse(raw || '{}') : raw;
+      return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+    } catch(e){ return {}; }
+  }
+  function courseGeoVersion(rec){
+    return Date.parse(rec && (rec.updatedAt || rec.updated_at || rec.modifiedAt || rec.modified_at) || '') || 0;
+  }
+  function mergeCourseGeoMaps(localRaw, remoteRaw, preferLocal){
+    var local = courseGeoMap(localRaw), remote = courseGeoMap(remoteRaw), merged = {};
+    Object.keys(remote).forEach(function (id) { merged[id] = remote[id]; });
+    Object.keys(local).forEach(function (id) {
+      var hasRemote = Object.prototype.hasOwnProperty.call(remote, id);
+      if (!hasRemote || preferLocal || courseGeoVersion(local[id]) > courseGeoVersion(remote[id])) merged[id] = local[id];
+    });
+    return JSON.stringify(merged);
+  }
+  function stableValue(value){
+    if (Array.isArray(value)) return value.map(stableValue);
+    if (value && typeof value === 'object'){
+      var out = {};
+      Object.keys(value).sort().forEach(function (key) { out[key] = stableValue(value[key]); });
+      return out;
+    }
+    return value;
+  }
+  function sameJsonValue(a, b){
+    function parse(raw){
+      if (typeof raw !== 'string') return raw;
+      try { return JSON.parse(raw); } catch(e) { return raw; }
+    }
+    try { return JSON.stringify(stableValue(parse(a))) === JSON.stringify(stableValue(parse(b))); }
+    catch(e) { return a === b; }
+  }
+  function mergeCourseValue(key, localRaw, remoteRaw, preferLocal){
+    if (key === 'ga_courses') return mergeCourseRows(localRaw, remoteRaw);
+    if (key === 'ga_course_geo') return mergeCourseGeoMaps(localRaw, remoteRaw, preferLocal);
+    return localRaw;
   }
   function push(reason, options) {
     if (pushFlight) return pushFlight;
@@ -3746,8 +3810,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
             if (k === 'ga_sp_tomb') row.v = tomb;
             else row.v = encode(mergeSpKey(k, raw, decode(remote[k] || (k === 'ga_sp_shots' ? [] : {})), tomb));
           } else if (COURSE_MERGE[k]) {
-            var remoteCourses = remote[k] === undefined ? '[]' : decode(remote[k]);
-            row.v = encode(mergeCourseRows(raw, remoteCourses));
+            var remoteValue = remote[k] === undefined ? (k === 'ga_courses' ? '[]' : '{}') : decode(remote[k]);
+            row.v = encode(mergeCourseValue(k, raw, remoteValue, true));
           }
         }
         var payload = JSON.stringify({ action: 'kv', rows: [row] });
@@ -12311,6 +12375,32 @@ window.addEventListener('ga:brand-changed', function(){
   }
 
   /* ── تب زمین‌ها ── */
+  const COURSE_ZOOM_LOCK_MIN = 14, COURSE_ZOOM_LOCK_MAX = 20, COURSE_ZOOM_LOCK_STEP = 1/3;
+  function normalizeCourseZoomLock(value){
+    const n = Number(value);
+    if (!Number.isFinite(n) || n <= 0) return null;
+    return Math.max(COURSE_ZOOM_LOCK_MIN, Math.min(COURSE_ZOOM_LOCK_MAX, Math.round(n * 3) / 3));
+  }
+  function courseZoomLockOf(rec){
+    if (!rec || typeof rec !== 'object') return null;
+    /* مقدار maxLock نسخه‌های قبلی را به‌عنوان مرز زوم‌اوت حفظ می‌کنیم. */
+    const raw = rec.minZoomLock != null ? rec.minZoomLock : rec.maxLock;
+    return normalizeCourseZoomLock(raw);
+  }
+  function courseZoomText(value){
+    const n = normalizeCourseZoomLock(value);
+    if (n == null) return '';
+    let text = String(Math.round(n * 100) / 100);
+    if (text.indexOf('.') >= 0) text = text.replace(/0+$/,'').replace(/\.$/,'');
+    return D.fa(text.replace('.', '٫'));
+  }
+  function saveCourseZoomLock(rec, value){
+    const n = normalizeCourseZoomLock(value);
+    if (n == null) return;
+    rec.minZoomLock = n;
+    delete rec.maxLock;
+  }
+
   function mgmtCourses(body){
     const S = gstate().S;
     const extra = extraCourses();
@@ -12519,11 +12609,11 @@ window.addEventListener('ga:brand-changed', function(){
       APP.reloadData(); APP.go('mgmt'); mgmtTab='courses';
       APP.toast('زمین «' + name + '» ثبت شد ✓', 'green');
     });
-    const geoLocks = (() => { try { const all = JSON.parse(localStorage.getItem('ga_course_geo') || '{}'); const m = {}; Object.keys(all).forEach(k => { if (all[k] && all[k].maxLock) m[k] = all[k].maxLock; }); return m; } catch (e) { return {}; } })();
+    const geoLocks = (() => { try { const all = JSON.parse(localStorage.getItem('ga_course_geo') || '{}'); const m = {}; Object.keys(all).forEach(k => { const z = courseZoomLockOf(all[k]); if (z != null) m[k] = z; }); return m; } catch (e) { return {}; } })();
     const lockChip = r => {
       const course = !r.base && D.courseById ? D.courseById(r.id) : null;
       const gid = r.base ? (String(r.id) === '1' ? '1' : null) : (course && course.geoId) || r.geoId;
-      return (gid && geoLocks[gid]) ? ` <span class="chip dim" title="حداکثر زوم قفل‌شده">🔒 z${D.fa(geoLocks[gid])}</span>` : '';
+      return (gid && geoLocks[gid] != null) ? ` <span class="chip dim" title="مرز زوم‌اوت قفل‌شده">🔒 z${courseZoomText(geoLocks[gid])}</span>` : '';
     };
     $('#mc-rows').innerHTML = rows.map((r,i) => `<tr class="${r.base?'':'custom-row'}">
       <td class="num">${D.fa(r.id)}</td><td><b>${esc(r.name)}</b> ${r.base?'<span class="chip dim">پایه</span>':'<span class="chip purple">سفارشی</span>'}${lockChip(r)}</td>
@@ -12690,14 +12780,14 @@ window.addEventListener('ga:brand-changed', function(){
           <span id="earth-geo-hint" style="font-size:12px;color:var(--muted);line-height:1.5"></span>
         </div>
         <div id="ec-zoomlock" style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap;font-size:12.5px">
-          <span style="color:var(--muted)">🔒 حداکثر زوم نمایش:</span>
+          <span style="color:var(--muted)">🔒 مرز زوم‌اوت این زمین:</span>
           <b id="ec-zl-val">آزاد (پیش‌فرض)</b>
           <span id="ec-zl-cur" style="color:var(--muted)"></span>
-          <button type="button" class="btn sm ghost" id="ec-zl-lock">🔒 قفل روی زوم فعلی</button>
-          <button type="button" class="btn sm ghost" id="ec-zl-minus" style="display:none;padding:2px 10px">−</button>
-          <button type="button" class="btn sm ghost" id="ec-zl-plus" style="display:none;padding:2px 10px">＋</button>
+          <button type="button" class="btn sm ghost" id="ec-zl-lock" title="قفل زوم‌اوت روی همین اندازه">🔒 قفل زوم‌اوت فعلی</button>
+          <button type="button" class="btn sm ghost" id="ec-zl-minus" aria-label="اجازهٔ زوم‌اوت بیشتر" title="اجازهٔ زوم‌اوت بیشتر" style="display:none;padding:2px 10px">−</button>
+          <button type="button" class="btn sm ghost" id="ec-zl-plus" aria-label="محدودکردن زوم‌اوت" title="محدودکردن زوم‌اوت" style="display:none;padding:2px 10px">＋</button>
           <button type="button" class="btn sm ghost" id="ec-zl-open" style="display:none">🔓 حذف قفل</button>
-          <span style="color:var(--muted);flex-basis:100%;line-height:1.7">قفل یعنی بیننده (پنل و هوش زمین) نمی‌تواند از این زوم جلوتر برود؛ کم‌کردن زوم همیشه آزاد است. بی‌درنگ ذخیره و با ابر برای همهٔ دستگاه‌ها همگام می‌شود.</span>
+          <span style="color:var(--muted);flex-basis:100%;line-height:1.7">پس از قفل، بیننده نمی‌تواند دورتر زوم‌اوت کند؛ زوم‌این آزاد می‌ماند. قفل برای هر زمین جداست. دکمه‌های نقشه هر بار یک‌سوم زوم کامل جابه‌جا می‌شوند.</span>
         </div>
       </div>
             <div id="ec-pars" class="hp-par-wrap"></div>
@@ -12747,11 +12837,14 @@ window.addEventListener('ga:brand-changed', function(){
     function zlRec(){ try { return (JSON.parse(localStorage.getItem('ga_course_geo') || '{}'))[zlGeoId()] || null; } catch(e){ return null; } }
     const zlVal = () => $('#ec-zl-val'), zlCur = () => $('#ec-zl-cur');
     function zlPaint(){
-      const v = zlRec() && zlRec().maxLock;
+      const v = courseZoomLockOf(zlRec());
       const el = zlVal(); if (!el) return;
-      el.textContent = v ? ('z' + D.fa(v) + ' (قفل)') : 'آزاد (پیش‌فرض)';
-      const show = v ? '' : 'none';
+      el.textContent = v != null ? ('زوم‌اوت تا z' + courseZoomText(v) + ' قفل است') : 'آزاد (پیش‌فرض)';
+      const show = v != null ? '' : 'none';
       ['#ec-zl-minus','#ec-zl-plus','#ec-zl-open'].forEach(id => { const b = $(id); if (b) b.style.display = show; });
+      const minus = $('#ec-zl-minus'), plus = $('#ec-zl-plus');
+      if (minus) minus.disabled = v != null && v <= COURSE_ZOOM_LOCK_MIN + 1e-6;
+      if (plus) plus.disabled = v != null && v >= COURSE_ZOOM_LOCK_MAX - 1e-6;
     }
     function zlSave(fn){
       const gid = zlGeoId();
@@ -12761,22 +12854,28 @@ window.addEventListener('ga:brand-changed', function(){
       if (window.CourseGeo) CourseGeo.set(gid, all[gid]);
       zlPaint();
     }
+    function zlAdjustLock(delta){
+      const current = courseZoomLockOf(zlRec());
+      const base = current != null ? current : normalizeCourseZoomLock((window.EarthMap && EarthMap.zoom()) || 16);
+      if (base == null) return;
+      zlSave(rec => saveCourseZoomLock(rec, base + delta * COURSE_ZOOM_LOCK_STEP));
+    }
     (function zlBind(){
       if (!window.EarthMap || !EarthMap.onZoom) return;
-      try { EarthMap.onZoom(z => { const c = zlCur(); if (c) c.textContent = 'زوم فعلی: z' + D.fa(z); }); } catch(e){}
+      try { EarthMap.onZoom(z => { const c = zlCur(); if (c) c.textContent = 'زوم فعلی: z' + courseZoomText(z); }); } catch(e){}
       const lb = $('#ec-zl-lock');
       if (lb) lb.addEventListener('click', () => {
-        const z = window.EarthMap && EarthMap.zoom();
-        if (!z) return;
-        zlSave(rec => { rec.maxLock = z; });
-        APP.toast('حداکثر زوم این زمین روی z' + D.fa(z) + ' قفل شد 🔒', 'green');
+        const z = normalizeCourseZoomLock(window.EarthMap && EarthMap.zoom());
+        if (z == null) return;
+        zlSave(rec => saveCourseZoomLock(rec, z));
+        APP.toast('مرز زوم‌اوت این زمین روی z' + courseZoomText(z) + ' قفل شد 🔒', 'green');
       });
       const pm = $('#ec-zl-minus');
-      if (pm) pm.addEventListener('click', () => { zlSave(rec => { rec.maxLock = Math.max(12, (+rec.maxLock || 16) - 1); }); });
+      if (pm) pm.addEventListener('click', () => zlAdjustLock(-1));
       const pp = $('#ec-zl-plus');
-      if (pp) pp.addEventListener('click', () => { zlSave(rec => { rec.maxLock = Math.min(20, (+rec.maxLock || 16) + 1); }); });
+      if (pp) pp.addEventListener('click', () => zlAdjustLock(1));
       const po = $('#ec-zl-open');
-      if (po) po.addEventListener('click', () => { zlSave(rec => { delete rec.maxLock; }); APP.toast('قفل زوم برداشته شد — نمایش آزاد 🔓', 'orange'); });
+      if (po) po.addEventListener('click', () => { zlSave(rec => { delete rec.minZoomLock; delete rec.maxLock; }); APP.toast('قفل زوم‌اوت برداشته شد — نمایش آزاد 🔓', 'orange'); });
       zlPaint();
     })();
     mountGeoEdit();
@@ -17085,6 +17184,7 @@ window.MIS_GOLF.sat={url:"mis_sat.webp?v=4",topo:"mis_topo.webp?v=4",south:31.89
     const next = clone(cur);
     fn(next);
     all[key].holes[String(n)] = next;
+    all[key].updatedAt = new Date().toISOString();
     saveAll(all);
     return next;
   }
@@ -17116,7 +17216,9 @@ window.MIS_GOLF.sat={url:"mis_sat.webp?v=4",topo:"mis_topo.webp?v=4",south:31.89
   }
   function set(geoId, data){
     const all = loadAll();
-    all[String(geoId)] = data;
+    const record = data && typeof data === 'object'
+      ? Object.assign({}, data, { updatedAt:new Date().toISOString() }) : data;
+    all[String(geoId)] = record;
     saveAll(all);
   }
   function summary(p){
@@ -17485,6 +17587,18 @@ window.MIS_GOLF.sat={url:"mis_sat.webp?v=4",topo:"mis_topo.webp?v=4",south:31.89
   const CLUBS = ['Driver','3 Wood','5 Wood','Hybrid','Iron 3','Iron 4','Iron 5','Iron 6','Iron 7','Iron 8','Iron 9','Pitching Wedge','Gap Wedge','Sand Wedge','Lob Wedge','Putter'];
   const CLUB_COLORS = ['#D4AF37','#E67E22','#1EBB8A','#9B59B6','#2E86DE','#E74C3C','#1abc9c','#f39c12','#16a085','#c0392b'];
   const YD = 0.9144;
+  const MAP_MIN_ZOOM = 14, MAP_MAX_ZOOM = 20, MAP_ZOOM_STEP = 1/3;
+  function normalizeZoomLock(value){
+    const n = Number(value);
+    if (!Number.isFinite(n) || n <= 0) return 0;
+    return Math.max(MAP_MIN_ZOOM, Math.min(MAP_MAX_ZOOM, Math.round(n * 3) / 3));
+  }
+  function zoomLockFromRecord(rec){
+    if (!rec || typeof rec !== 'object') return 0;
+    /* maxLock is a legacy value; reinterpret it as the intended zoom-out floor. */
+    const raw = rec.minZoomLock != null ? rec.minZoomLock : rec.maxLock;
+    return normalizeZoomLock(raw);
+  }
 
   let map = null, measurePts = [], measureLine = null, measureMarks = [], mode = 'pan';
   let unit = 'yd', holeSel = 'all', showTee = true, showGreen = true, showFw = true, showDash = true;
@@ -18131,8 +18245,8 @@ window.MIS_GOLF.sat={url:"mis_sat.webp?v=4",topo:"mis_topo.webp?v=4",south:31.89
   }
 
   let mountCenter = null;
-  let appliedLock = 0;   /* قفل حداکثر زوم زمین (۰ = آزاد) — توسط مدیر در ویرایش زمین تعیین می‌شود */
-  const zoomCbs = [];    /* نوار «قفل زوم» پنل، زوم فعلی را زنده می‌خواند */
+  let appliedMinZoomLock = 0; /* کمترین زوم مجاز؛ جلوی زوم‌اوت دورتر از قاب تصویر را می‌گیرد */
+  const zoomCbs = [];    /* نوار قفل زوم پنل، زوم فعلی را زنده می‌خواند */
   function mount(el, opts){
     destroy();
     if (!el) return;
@@ -18149,17 +18263,20 @@ window.MIS_GOLF.sat={url:"mis_sat.webp?v=4",topo:"mis_topo.webp?v=4",south:31.89
     }
 
     mountCenter = { lat: center.lat, lng: center.lng };
-    /* قفل حداکثر زومِ زمین (اگر مدیر تعیین کرده) — در همهٔ نمایش‌های این زمین اعمال می‌شود */
-    appliedLock = 0;
+    /* قفل زوم‌اوتِ زمین: در نمایش عادی، حداقل زوم هر زمین جداگانه اعمال می‌شود. */
+    appliedMinZoomLock = 0;
     try {
       if (window.CourseGeo && CourseGeo.keyOf){
         var gk = CourseGeo.keyOf(courseKey());
         var grec = (JSON.parse(localStorage.getItem('ga_course_geo') || '{}') || {})[gk];
-        if (grec && isFinite(+grec.maxLock)) appliedLock = Math.max(12, Math.min(20, Math.round(+grec.maxLock)));
+        appliedMinZoomLock = zoomLockFromRecord(grec);
       }
     } catch (e) {}
-    map = L.map(el, { zoomControl:false, attributionControl:false, tap:true, minZoom:14, maxZoom: appliedLock || 20 })
-          .setView([center.lat, center.lng], appliedLock ? Math.min(16, appliedLock) : 16);
+    const minZoom = appliedMinZoomLock || MAP_MIN_ZOOM;
+    map = L.map(el, {
+      zoomControl:false, attributionControl:false, tap:true,
+      minZoom, maxZoom:MAP_MAX_ZOOM, zoomSnap:MAP_ZOOM_STEP, zoomDelta:MAP_ZOOM_STEP
+    }).setView([center.lat, center.lng], Math.max(16, minZoom));
     map.on('zoomend', function(){ try { zoomCbs.forEach(function(f){ f(map.getZoom()); }); } catch (e) {} });
     applyBg();
     if (!satInfo() || !satInfo().url){
@@ -18617,12 +18734,17 @@ window.MIS_GOLF.sat={url:"mis_sat.webp?v=4",topo:"mis_topo.webp?v=4",south:31.89
     mount, destroy,
     setEdit: function(on){
       editOn = !!on;
-      /* ویرایش‌گر آزادانه زوم می‌کند تا سطح درست را بسنجد؛ نمایش‌ها قفل را می‌گیرند */
-      try { if (map) map.setMaxZoom((!on && appliedLock) ? appliedLock : 20); } catch (e) {}
+      /* مدیر هنگام تنظیم آزادانه زوم می‌کند؛ نمایش عادی فقط از زوم‌اوتِ قفل‌شده عبور نمی‌کند. */
+      try {
+        if (map){
+          map.setMinZoom((!on && appliedMinZoomLock) ? appliedMinZoomLock : MAP_MIN_ZOOM);
+          map.setMaxZoom(MAP_MAX_ZOOM);
+        }
+      } catch (e) {}
       drawCourse();
     },
     zoom: function(){ return map ? map.getZoom() : null; },
-    state: function(){ return map ? { zoom: map.getZoom(), maxZoom: map.getMaxZoom(), lock: appliedLock || 0 } : null; },
+    state: function(){ return map ? { zoom: map.getZoom(), minZoom: map.getMinZoom(), maxZoom: map.getMaxZoom(), lock: appliedMinZoomLock || 0 } : null; },
     onZoom: function(fn){ if (typeof fn !== 'function') return; zoomCbs.push(fn); if (map){ try { fn(map.getZoom()); } catch (e) {} } }
   };
 })();
@@ -22913,6 +23035,7 @@ const stCal = $('#st-cal');
     S = D.loadState();
     A = D.compute(S);
     if (currentPage === 'player') go('player');
+    else if (currentPage === 'course') go('course'); /* دریافت KML/هندسه پس از رندر اول: نقشه را با geo تازه دوباره بساز */
     msgGate();
   };
   let __cloudT = null, __cloudResultsChanged = false;
