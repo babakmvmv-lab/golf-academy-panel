@@ -1039,6 +1039,72 @@ svg.si{stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-
 .field-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
 .field-grid label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px}
 .field-grid .span2{grid-column:span 2}
+
+/* ── گزارش حرفه‌ای واردکردن KML و مراحل دریافت تصویر زمین ── */
+.mc-kml-report{display:flex;align-items:flex-start;gap:11px;margin-top:10px;padding:13px;border:1px solid rgba(255,255,255,.09);border-radius:14px;background:linear-gradient(135deg,rgba(17,27,38,.88),rgba(10,16,24,.78));box-shadow:inset 0 1px rgba(255,255,255,.025);color:var(--text)}
+.mc-kml-report.is-ready{display:block}
+.mc-kml-guide-icon{display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:11px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.24);color:var(--gold-l);font-size:9px;font-weight:900;letter-spacing:.3px;direction:ltr}
+.mc-kml-guide-copy,.mc-kml-error-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
+.mc-kml-guide-copy>b,.mc-kml-error-copy>b{font-size:12.5px;font-weight:850;color:var(--gold-l)}
+.mc-kml-guide-copy>span,.mc-kml-error-copy>span{font-size:11px;line-height:1.8;color:var(--muted)}
+.mc-kml-format{margin-top:3px;font-size:10.5px;color:var(--muted)}
+.mc-kml-format summary{cursor:pointer;color:var(--gold-l);font-weight:700;outline:none}
+.mc-kml-format>span{display:block;margin-top:5px;line-height:1.9}
+.mc-kml-report-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.mc-kml-report-title{display:flex;align-items:center;gap:9px;min-width:0}
+.mc-kml-report-mark,.mc-kml-stat-mark,.mc-kml-error-mark{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;font-size:14px;font-weight:900}
+.mc-kml-report-mark,.mc-kml-stat.is-ok .mc-kml-stat-mark{color:#71e0b2;background:rgba(30,187,138,.13);border:1px solid rgba(30,187,138,.42)}
+.mc-kml-report-title>span:last-child{display:flex;flex-direction:column;gap:2px}
+.mc-kml-report-title b{font-size:12.5px;font-weight:850;color:var(--text)}
+.mc-kml-report-title small{font-size:10.5px;color:var(--muted)}
+.mc-kml-read-badge{display:inline-flex;align-items:center;gap:5px;flex:none;padding:5px 9px;border-radius:99px;border:1px solid rgba(30,187,138,.28);background:rgba(30,187,138,.08);color:#71e0b2;font-size:10px;font-weight:800;white-space:nowrap}
+.mc-kml-read-badge i{font-style:normal;font-size:12px}
+.mc-kml-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:7px}
+.mc-kml-stat{display:flex;align-items:center;gap:8px;min-width:0;padding:8px 9px;border:1px solid rgba(255,255,255,.075);border-radius:11px;background:rgba(255,255,255,.025)}
+.mc-kml-stat-mark{width:23px;height:23px;font-size:12px}
+.mc-kml-stat.is-missing .mc-kml-stat-mark{color:#f5c86b;background:rgba(244,196,48,.1);border:1px solid rgba(244,196,48,.3)}
+.mc-kml-stat-copy{display:flex;flex-direction:column;gap:1px;min-width:0}
+.mc-kml-stat-copy b{font-size:14px;font-weight:900;line-height:1.15;color:var(--text);font-variant-numeric:tabular-nums}
+.mc-kml-stat-copy small{font-size:9.5px;line-height:1.35;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mc-kml-notices{display:flex;flex-direction:column;gap:5px;margin-top:8px}
+.mc-kml-notice{display:flex;gap:6px;padding:7px 9px;border:1px solid rgba(244,196,48,.2);border-radius:9px;background:rgba(244,196,48,.055);color:#f5c86b;font-size:10.5px;line-height:1.7}
+.mc-kml-notice span{color:var(--muted)}
+.mc-kml-capture-heading{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:13px 1px 8px}
+.mc-kml-capture-heading b{font-size:11.5px;font-weight:850;color:var(--gold-l)}
+.mc-kml-capture-heading span{font-size:9.5px;color:var(--muted)}
+.mc-kml-captures{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.mc-kml-capture{min-width:0;padding:10px;border:1px solid rgba(255,255,255,.075);border-radius:12px;background:rgba(6,12,18,.38);transition:border-color .2s,background .2s}
+.mc-kml-capture-head{display:flex;align-items:center;gap:8px;min-width:0}
+.mc-kml-capture-icon{display:grid;place-items:center;flex:none;width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.045);font-size:15px}
+.mc-kml-capture-title{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.mc-kml-capture-title b{font-size:11px;font-weight:850;color:var(--text)}
+.mc-kml-capture-title small{font-size:9px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mc-kml-stage-chip{display:inline-flex;align-items:center;gap:4px;flex:none;padding:4px 7px;border:1px solid rgba(255,255,255,.09);border-radius:99px;background:rgba(255,255,255,.035);color:var(--muted);font-size:9px;font-weight:800;white-space:nowrap}
+.mc-kml-stage-chip i{font-style:normal;font-size:12px;line-height:1}
+.mc-kml-capture.is-running .mc-kml-stage-chip{border-color:rgba(212,175,55,.28);background:rgba(212,175,55,.07);color:var(--gold-l)}
+.mc-kml-capture.is-done{border-color:rgba(30,187,138,.3);background:rgba(30,187,138,.035)}
+.mc-kml-capture.is-done .mc-kml-stage-chip{border-color:rgba(30,187,138,.3);background:rgba(30,187,138,.09);color:#71e0b2}
+.mc-kml-capture.is-error{border-color:rgba(231,76,60,.24)}
+.mc-kml-capture.is-error .mc-kml-stage-chip{border-color:rgba(231,76,60,.24);background:rgba(231,76,60,.06);color:#f08a7f}
+.mc-kml-capture.is-unavailable{border-color:rgba(244,196,48,.22)}
+.mc-kml-capture.is-unavailable .mc-kml-stage-chip{border-color:rgba(244,196,48,.26);background:rgba(244,196,48,.06);color:#f5c86b}
+.mc-kml-progress{height:5px;margin:9px 0 6px;overflow:hidden;border-radius:99px;background:rgba(255,255,255,.075)}
+.mc-kml-progress>span{display:block;width:0;height:100%;border-radius:inherit;background:#82909a;transition:width .28s ease}
+.mc-kml-capture.is-running .mc-kml-progress>span{background:linear-gradient(90deg,#c3972e,#e9c766,#1EBB8A);background-size:180% 100%;animation:mc-kml-shimmer 2s linear infinite}
+.mc-kml-capture.is-done .mc-kml-progress>span{background:linear-gradient(90deg,#168d67,#3ddc97)}
+.mc-kml-capture.is-error .mc-kml-progress>span{background:#c95e56}
+.mc-kml-capture.is-unavailable .mc-kml-progress>span{background:#d6ad4f}
+.mc-kml-capture-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.mc-kml-capture-foot>span{min-width:0;font-size:9.5px;line-height:1.6;color:var(--muted)}
+.mc-kml-capture-foot>b{flex:none;font-size:10px;font-weight:900;color:var(--gold-l);direction:ltr;font-variant-numeric:tabular-nums}
+.mc-kml-capture.is-done .mc-kml-capture-foot>b{color:#71e0b2}
+.mc-kml-capture.is-error .mc-kml-capture-foot>b{color:#f08a7f}
+.mc-kml-capture.is-unavailable .mc-kml-capture-foot>b{color:#f5c86b}
+.mc-kml-report.is-error{align-items:center;border-color:rgba(231,76,60,.25);background:rgba(231,76,60,.045)}
+.mc-kml-error-mark{color:#f08a7f;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.28)}
+.mc-kml-error-copy b{color:#f08a7f}
+@keyframes mc-kml-shimmer{to{background-position:-180% 0}}
+@media(max-width:560px){.mc-kml-report{padding:10px}.mc-kml-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.mc-kml-captures{grid-template-columns:1fr}.mc-kml-capture-heading{align-items:flex-start;flex-direction:column;gap:2px}.mc-kml-read-badge{font-size:9px;padding:4px 7px}}
 .photo-upload{display:flex;gap:14px;align-items:center}
 .photo-upload .ph-prev{
   width:88px;height:88px;border-radius:16px;object-fit:cover;border:2px solid rgba(212,175,55,.4);
@@ -1420,6 +1486,9 @@ tr.off-row{opacity:.5}
 .ew-note{width:100%;min-height:90px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(8,14,22,.75);color:inherit;font:inherit;padding:10px;resize:vertical;box-sizing:border-box}
 .ew-main-acts{margin:0 0 8px}
 #ew-add,#ew-lock{width:auto;padding:5px 12px;font-size:12px;font-weight:700}
+.ew-distance-card{display:inline-flex;flex:none;align-items:center;justify-content:center;gap:9px;min-height:32px;box-sizing:border-box;padding:5px 12px;border:1px solid rgba(212,175,55,.36);border-radius:10px;background:rgba(212,175,55,.08);line-height:1;white-space:nowrap}
+.ew-distance-card span{font-size:10px;font-weight:800;letter-spacing:.2px;color:var(--muted)}
+.ew-distance-card b{font-size:13px;font-weight:900;color:var(--gold-l);font-variant-numeric:tabular-nums;direction:ltr;line-height:1}
 .ew-hbtn.done{border-color:rgba(30,187,138,.55);background:rgba(30,187,138,.14);color:#8fe3c4}
 .ew-done{margin-top:14px;display:flex;flex-direction:column;gap:8px}
 .ew-acc{border:1px solid rgba(212,175,55,.28);border-radius:12px;background:rgba(255,255,255,.03);overflow:hidden}
@@ -10948,6 +11017,108 @@ window.addEventListener('ga:brand-changed', function(){
   /* ═══════════════ صفحه: پلن مدیریت (تب‌ها) ═══════════════ */
   let mgmtTab = 'players';
   let kmlDraft = null; /* سطح ماژول: رندر دوبارهٔ تب، پیش‌نویس KML را نمی‌پاکد */
+  let kmlReportState = null;
+  let kmlCaptureGeneration = 0;
+  let kmlEditCaptureGeneration = 0;
+  const KML_CAPTURE_INFO = {
+    sat: { icon:'🛰', title:'تصویر ماهواره‌ای', subtitle:'نمای واقعی زمین از بالا' },
+    topo: { icon:'⛰', title:'تصویر توپوگرافی', subtitle:'پستی‌وبلندی و عوارض زمین' }
+  };
+  function kmlCount(value){
+    const n = Math.max(0, Math.floor(Number(value) || 0));
+    return D && D.fa ? D.fa(n) : String(n);
+  }
+  function kmlPercent(value){
+    const n = Number(value);
+    return Number.isFinite(n) ? Math.max(0, Math.min(100, Math.round(n))) : 0;
+  }
+  function createKmlReportState(summary, hasBounds, canCapture){
+    const notices = [];
+    if (!summary.teesM) notices.push('تی‌باکس آقایان در فایل پیدا نشد؛ می‌توانید آن را بعداً در ویرایش زمین اضافه کنید.');
+    if (!hasBounds) notices.push('محدودهٔ جغرافیایی برای ساخت تصویر ماهواره‌ای و توپوگرافی شناسایی نشد.');
+    else if (!canCapture) notices.push('ابزار آماده‌سازی تصویر بارگذاری نشده است؛ تصویرها در این مرحله دریافت نمی‌شوند.');
+    const unavailable = !hasBounds ? 'محدودهٔ لازم برای دریافت تصویر در فایل پیدا نشد.' : 'ابزار دریافت تصویر در دسترس نیست.';
+    return {
+      summary, notices,
+      captures: {
+        sat: { status:canCapture?'running':'unavailable', progress:0, message:canCapture?'در حال آماده‌سازی درخواست تصویر…':unavailable },
+        topo: { status:canCapture?'pending':'unavailable', progress:0, message:canCapture?'پس از تصویر ماهواره‌ای شروع می‌شود.':unavailable }
+      }
+    };
+  }
+  function kmlStatMarkup(key, label, value){
+    const n = Math.max(0, Math.floor(Number(value) || 0));
+    const present = n > 0;
+    return `<div class="mc-kml-stat ${present?'is-ok':'is-missing'}" data-kml-stat="${key}">
+      <span class="mc-kml-stat-mark" aria-hidden="true">${present?'✓':'!'}</span>
+      <span class="mc-kml-stat-copy"><b>${kmlCount(n)}</b><small>${label}</small></span>
+    </div>`;
+  }
+  function kmlCaptureMarkup(mode, capture){
+    const info = KML_CAPTURE_INFO[mode];
+    const state = capture || { status:'pending', progress:0 };
+    const kind = ['pending','running','done','error','unavailable'].indexOf(state.status) >= 0 ? state.status : 'pending';
+    const labels = { pending:'در انتظار', running:'در حال دریافت', done:'تکمیل شد', error:'ناموفق', unavailable:'نامشخص' };
+    const marks = { pending:'…', running:'↻', done:'✓', error:'!', unavailable:'—' };
+    const defaultMessages = {
+      pending: mode === 'sat' ? 'آمادهٔ شروع است.' : 'پس از تصویر ماهواره‌ای شروع می‌شود.',
+      running: 'در حال دریافت و ترکیب کاشی‌های نقشه…',
+      done: 'تصویر با موفقیت دریافت شد.',
+      error: 'دریافت تصویر کامل نشد؛ فایل را دوباره انتخاب یا اتصال را بررسی کنید.',
+      unavailable: 'محدودهٔ لازم برای دریافت تصویر در دسترس نیست.'
+    };
+    const pct = kind === 'done' ? 100 : kmlPercent(state.progress);
+    const fill = kind === 'unavailable' ? 0 : pct;
+    const percentText = kind === 'unavailable' ? '—' : kmlCount(pct) + '٪';
+    const message = esc(state.message || defaultMessages[kind]);
+    return `<article class="mc-kml-capture is-${kind}" data-kml-capture="${mode}" data-status="${kind}">
+      <div class="mc-kml-capture-head">
+        <span class="mc-kml-capture-icon" aria-hidden="true">${info.icon}</span>
+        <span class="mc-kml-capture-title"><b>${info.title}</b><small>${info.subtitle}</small></span>
+        <span class="mc-kml-stage-chip"><i aria-hidden="true">${marks[kind]}</i>${labels[kind]}</span>
+      </div>
+      <div class="mc-kml-progress" role="progressbar" aria-label="${info.title}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${fill}" aria-valuetext="${percentText}"><span style="width:${fill}%"></span></div>
+      <div class="mc-kml-capture-foot"><span>${message}</span><b>${percentText}</b></div>
+    </article>`;
+  }
+  function renderKmlReportElement(el, state, showGuide){
+    if (!el) return;
+    el.className = 'mc-kml-report';
+    if (!state){
+      if (!showGuide){ el.innerHTML = ''; return; }
+      el.innerHTML = `<div class="mc-kml-guide-icon" aria-hidden="true">KML</div>
+        <div class="mc-kml-guide-copy"><b>گزارش و آماده‌سازی خودکار زمین</b>
+          <span>پس از انتخاب فایل، شمار میدان‌ها و تی‌باکس‌ها تأیید می‌شود و تصاویر ماهواره‌ای و توپوگرافی به‌ترتیب آماده خواهند شد.</span>
+          <details class="mc-kml-format"><summary>الگوی تشخیص اجزای فایل</summary><span><b dir="ltr">T.12 -260Y -Par4 -W</b> بانوان · <b dir="ltr">T.12 -260Y -Par4 -M</b> آقایان · <b dir="ltr">Hole 12</b> · <b dir="ltr">fairway 12</b>. تی بدون پسوند جنسیت، بانوان در نظر گرفته می‌شود.</span></details>
+        </div>`;
+      el.classList.add('is-guide');
+      return;
+    }
+    if (state.error){
+      el.innerHTML = `<div class="mc-kml-error-mark" aria-hidden="true">!</div><div class="mc-kml-error-copy"><b>خواندن فایل انجام نشد</b><span>${esc(state.message || 'فرمت و سلامت فایل را بررسی و دوباره انتخاب کنید.')}</span></div>`;
+      el.classList.add('is-error');
+      return;
+    }
+    const sm = state.summary || {};
+    const notices = (state.notices || []).map(text => `<div class="mc-kml-notice">⚠ <span>${esc(text)}</span></div>`).join('');
+    const captures = state.captures || {};
+    el.innerHTML = `<div class="mc-kml-report-head">
+        <div class="mc-kml-report-title"><span class="mc-kml-report-mark" aria-hidden="true">✓</span><span><b>گزارش فایل گوگل‌ارث</b><small>ساختار فایل با موفقیت خوانده شد</small></span></div>
+        <span class="mc-kml-read-badge"><i aria-hidden="true">✓</i> فایل بررسی شد</span>
+      </div>
+      <div class="mc-kml-stats" aria-label="خلاصهٔ اجزای شناسایی‌شده">
+        ${kmlStatMarkup('holes','میدان‌ها',sm.holes)}
+        ${kmlStatMarkup('tees-f','تی‌باکس بانوان',sm.teesF)}
+        ${kmlStatMarkup('tees-m','تی‌باکس آقایان',sm.teesM)}
+        ${kmlStatMarkup('greens','حفره‌ها',sm.greens)}
+        ${kmlStatMarkup('fairways','فروی‌ها',sm.fairways)}
+      </div>
+      ${notices ? `<div class="mc-kml-notices">${notices}</div>` : ''}
+      <div class="mc-kml-capture-heading"><b>آماده‌سازی تصاویر زمین</b><span>هر مرحله پس از تکمیل با تیک سبز مشخص می‌شود.</span></div>
+      <div class="mc-kml-captures">${kmlCaptureMarkup('sat',captures.sat)}${kmlCaptureMarkup('topo',captures.topo)}</div>`;
+    el.classList.add('is-ready');
+  }
+  function renderCourseKmlReport(){ renderKmlReportElement($('#mc-kml-rep'), kmlReportState, true); }
   function pageMgmt(){
     const v = $('#view');
     const tabs = [
@@ -12175,7 +12346,7 @@ window.addEventListener('ga:brand-changed', function(){
       <div style="margin-top:12px">
         <label>فایل گوگل‌ارث (KML)</label>
         <input class="input" type="file" id="mc-kml" accept=".kml,.xml,application/vnd.google-earth.kml+xml" style="width:100%">
-        <div id="mc-kml-rep" style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.7">نام تی: <b dir="ltr">T.12 -260Y -Par4 -W</b> خانم‌ها · <b dir="ltr">T.12 -260Y -Par4 -M</b> آقایان · <b dir="ltr">Hole 12</b> · <b dir="ltr">fairway 12</b>. بدون پسوند جنسیت = تی خانم.</div>
+        <div id="mc-kml-rep" class="mc-kml-report"></div>
         <div id="mc-kml-map" style="display:none;height:280px;margin-top:10px;border-radius:14px;overflow:hidden;border:1px solid var(--line-soft)"></div>
       </div>
       <div id="mc-pars" class="hp-par-wrap"></div>
@@ -12191,6 +12362,7 @@ window.addEventListener('ga:brand-changed', function(){
       <div class="card-head"><span class="ic">♻️</span><h3>زمین‌های بایگانی‌شده</h3><span class="tag">قابل‌بازیابی</span></div>
       <div id="mc-archived"></div>
     </div>`;
+    renderCourseKmlReport();
     let parVals = Array.from({length:18}, () => 4);
     let idxVals = Array.from({length:18}, (_,i) => i + 1);
     let distanceVals = Array.from({length:18}, () => '');
@@ -12198,24 +12370,67 @@ window.addEventListener('ga:brand-changed', function(){
     const kmlInp = $('#mc-kml');
     if (kmlInp) kmlInp.addEventListener('change', function(){
       const f = kmlInp.files && kmlInp.files[0];
-      if (!f){ kmlDraft = null; return; }
-      if (!window.CourseGeo){ APP.toast('ماژول زمین بار نشده', 'red'); return; }
+      const generation = ++kmlCaptureGeneration;
+      const mapEl = $('#mc-kml-map');
+      if (mapEl){ mapEl.style.display = 'none'; mapEl.innerHTML = ''; }
+      if (!f){ kmlDraft = null; kmlReportState = null; renderCourseKmlReport(); return; }
+      kmlDraft = null; kmlReportState = null; renderCourseKmlReport();
+      if (!window.CourseGeo){
+        kmlReportState = { error:true, message:'ابزار خواندن فایل زمین بارگذاری نشده است؛ صفحه را تازه‌سازی و دوباره تلاش کنید.' };
+        renderCourseKmlReport(); APP.toast('ماژول زمین بار نشده', 'red'); return;
+      }
       const reader = new FileReader();
       reader.onload = function(){
+        if (generation !== kmlCaptureGeneration) return;
         try {
           const g = CourseGeo.parseKml(String(reader.result || ''));
           const sm = CourseGeo.summary(g);
+          const hasBounds = !!(g.bounds && isFinite(g.bounds.south) && isFinite(g.bounds.north) && isFinite(g.bounds.west) && isFinite(g.bounds.east));
+          const hasCapture = !!(hasBounds && window.EarthShot && typeof EarthShot.captureFor === 'function');
+          kmlReportState = createKmlReportState(sm, hasBounds, hasCapture);
           kmlDraft = g;
+          renderCourseKmlReport();
           /* عکس‌های زمین (ماهواره + توپوگرافی، ۴ برابر محدوده) همان‌جا گرفته می‌شوند */
-          if (g.bounds && window.EarthShot){
-            kmlDraft._shots = EarthShot.captureFor('pending', g.bounds, (mode, p) => {
-              const repEl = $('#mc-kml-rep'); /* هر بار تازه — صفحه ممکن است دوباره رندر شده باشد */
-              if (!repEl) return;
-              if (!repEl.dataset.base) repEl.dataset.base = repEl.innerHTML;
-              repEl.innerHTML = repEl.dataset.base + '<br>' + (mode === 'sat'
-                ? ('🛰 تصویر ماهواره‌ای: ' + D.fa(p) + '٪')
-                : ('⛰ تصویر توپوگرافی: ' + D.fa(p) + '٪'));
-            }).catch(() => null);
+          if (hasCapture){
+            const updateCapture = (mode, p, meta) => {
+              if (generation !== kmlCaptureGeneration || !kmlReportState || !kmlReportState.captures[mode]) return;
+              const capture = kmlReportState.captures[mode];
+              if (meta && typeof meta === 'object' && meta.complete){
+                capture.status = meta.ok ? 'done' : 'error';
+                capture.progress = meta.ok ? 100 : kmlPercent(p);
+                capture.message = meta.ok ? 'تصویر با موفقیت دریافت شد.' : 'دریافت تصویر کامل نشد؛ اتصال نقشه را بررسی و دوباره فایل را انتخاب کنید.';
+              } else {
+                capture.status = 'running';
+                capture.progress = kmlPercent(p);
+                capture.message = 'در حال دریافت کاشی‌های نقشه…';
+              }
+              renderCourseKmlReport();
+            };
+            kmlDraft._shots = EarthShot.captureFor('pending', g.bounds, updateCapture).then(shots => {
+              if (generation === kmlCaptureGeneration && kmlReportState){
+                ['sat','topo'].forEach(mode => {
+                  const capture = kmlReportState.captures[mode];
+                  const ready = !!(shots && shots[mode] && shots[mode].blob);
+                  capture.status = ready ? 'done' : 'error';
+                  if (ready) capture.progress = 100;
+                  if (!ready && !capture.message) capture.message = 'دریافت تصویر کامل نشد؛ اتصال نقشه را بررسی و دوباره فایل را انتخاب کنید.';
+                });
+                renderCourseKmlReport();
+              }
+              return shots;
+            }).catch(() => {
+              if (generation === kmlCaptureGeneration && kmlReportState){
+                ['sat','topo'].forEach(mode => {
+                  const capture = kmlReportState.captures[mode];
+                  if (capture.status !== 'done'){
+                    capture.status = 'error';
+                    capture.message = 'دریافت تصویر کامل نشد؛ اتصال نقشه را بررسی و دوباره فایل را انتخاب کنید.';
+                  }
+                });
+                renderCourseKmlReport();
+              }
+              return null;
+            });
           }
           if (sm.pars && sm.pars.length){
             parVals = sm.pars.slice();
@@ -12230,13 +12445,21 @@ window.addEventListener('ga:brand-changed', function(){
             $('#mc-lng').value = g.center.lng.toFixed(6);
           }
           if (!($('#mc-name').value || '').trim() && f.name) $('#mc-name').value = f.name.replace(/\.kml$/i,'');
-          $('#mc-kml-rep').innerHTML = `خوانده شد: ${D.fa(sm.holes)} میدان · تی خانم ${D.fa(sm.teesF)} · تی آقا ${D.fa(sm.teesM)} · حفره ${D.fa(sm.greens)} · فروی ${D.fa(sm.fairways)}` + (sm.teesM ? '' : ' — تی آقایان در فایل نیست (بعداً با -M یا ویرایش نقشه).');
           previewKmlMap($('#mc-kml-map'), g);
         } catch(err){
           try { console.error('mc-kml parse:', err); } catch(e){}
           kmlDraft = null;
+          kmlReportState = { error:true, message:'ساختار فایل KML خوانده نشد. قالب و سلامت فایل را بررسی و دوباره انتخاب کنید.' };
+          renderCourseKmlReport();
           APP.toast('خواندن KML ناموفق بود', 'red');
         }
+      };
+      reader.onerror = function(){
+        if (generation !== kmlCaptureGeneration) return;
+        kmlDraft = null;
+        kmlReportState = { error:true, message:'فایل خوانده نشد؛ دوباره انتخابش کنید یا از سالم‌بودن فایل مطمئن شوید.' };
+        renderCourseKmlReport();
+        APP.toast('خواندن فایل ناموفق بود', 'red');
       };
       reader.readAsText(f);
     });
@@ -12448,7 +12671,7 @@ window.addEventListener('ga:brand-changed', function(){
         <button class="btn sm ghost" id="ec-pick">📍 انتخاب روی نقشه</button>
         <label class="btn sm ghost" style="cursor:pointer">📥 جایگزینی KML<input type="file" id="ec-kml" accept=".kml,.xml" style="display:none"></label>
       </div>
-      <div id="ec-kml-rep" style="font-size:12px;color:var(--muted);margin-top:6px"></div>
+      <div id="ec-kml-rep" class="mc-kml-report"></div>
       <div style="margin-top:12px">
         <div class="earth-stage" dir="ltr" style="height:300px;border-radius:14px;overflow:hidden;border:1px solid var(--line-soft)">
           <div id="ec-geo-map" class="earth-map" dir="ltr"></div>
@@ -12484,6 +12707,9 @@ window.addEventListener('ga:brand-changed', function(){
       </div>
     </div>`;
     m.style.display = 'flex';
+    ++kmlEditCaptureGeneration;
+    let editKmlState = null;
+    renderKmlReportElement($('#ec-kml-rep'), null, true);
     const parVals = (r.pars && r.pars.length) ? r.pars.slice() : Array.from({length: r.holes || 18}, () => 4);
     const idxVals = (r.index && r.index.length) ? r.index.slice() : ((D.indexOf && r.id != null) ? D.indexOf(r.id).slice() : Array.from({length: parVals.length}, (_,i) => i + 1));
     const distanceVals = Array.isArray(r.distances) ? r.distances.slice(0, parVals.length).map(v => v == null ? '' : String(v)) : [];
@@ -12509,6 +12735,7 @@ window.addEventListener('ga:brand-changed', function(){
       if (b) b.classList.add('on');
     }
     function closeEditModal(){
+      ++kmlEditCaptureGeneration;
       try { if (window.EarthMap) EarthMap.destroy(); } catch(e){}
       m.style.display = 'none';
     }
@@ -12564,42 +12791,86 @@ window.addEventListener('ga:brand-changed', function(){
     const ecKml = $('#ec-kml');
     if (ecKml) ecKml.addEventListener('change', function(){
       const f = ecKml.files && ecKml.files[0];
-      if (!f || !window.CourseGeo) return;
+      const generation = ++kmlEditCaptureGeneration;
+      if (!f){ editKmlState = null; renderKmlReportElement($('#ec-kml-rep'), editKmlState, true); return; }
+      editKmlState = null; renderKmlReportElement($('#ec-kml-rep'), editKmlState, true);
+      if (!window.CourseGeo){
+        editKmlState = { error:true, message:'ابزار خواندن فایل زمین بارگذاری نشده است؛ صفحه را تازه‌سازی و دوباره تلاش کنید.' };
+        renderKmlReportElement($('#ec-kml-rep'), editKmlState, true); APP.toast('ماژول زمین بار نشده', 'red'); return;
+      }
       const reader = new FileReader();
       reader.onload = function(){
+        if (generation !== kmlEditCaptureGeneration) return;
         try {
           const g = CourseGeo.parseKml(String(reader.result || ''));
           const sm = CourseGeo.summary(g);
+          const hasBounds = !!(g.bounds && isFinite(g.bounds.south) && isFinite(g.bounds.north) && isFinite(g.bounds.west) && isFinite(g.bounds.east));
+          const canCapture = !!(hasBounds && window.EarthShot && typeof EarthShot.captureFor === 'function');
+          editKmlState = createKmlReportState(sm, hasBounds, canCapture);
+          renderKmlReportElement($('#ec-kml-rep'), editKmlState, true);
           const course = !r.base && D.courseById ? D.courseById(r.id) : null;
           const geoId = r.base ? String(r.id) : ((course && course.geoId) || r.geoId || ('c'+r.id));
           g.name = ($('#ec-name').value || '').trim() || g.name;
-          /* عکس‌های ۳برابر خودکار: متا همان لحظه، عکس‌ها در پس‌زمینه + نسخهٔ فشردهٔ دائمی داخل رکورد.
-             عکس‌های دائمی قبلی هرگز پاک نمی‌شوند مگر نسخهٔ تازه واقعاً کامل شود (شبکهٔ بسته). */
+          /* عکس‌های قبلی فقط تا زمانی حفظ می‌شوند که تصویر تازه واقعاً جایگزین شود. */
           let oldSat = null;
           try { const allGeo = JSON.parse(localStorage.getItem('ga_course_geo') || '{}'); oldSat = (allGeo[geoId] && allGeo[geoId].sat) || null; } catch(e){}
-          if (g.bounds && window.EarthShot){
+          if (hasBounds && window.EarthShot){
             const ext = EarthShot.expand(g.bounds);
             if (ext) g.sat = Object.assign({ img: oldSat && oldSat.img, imgTopo: oldSat && oldSat.imgTopo }, ext, { src: 'earthshot' });
           } else if (oldSat){ g.sat = oldSat; }
           CourseGeo.set(geoId, g);
-          if (g.bounds && window.EarthShot){
-            const repEl = $('#ec-kml-rep');
-            const baseRep = 'KML ذخیره شد ✓';
-            EarthShot.captureFor(geoId, g.bounds, (mode, p) => {
-              if (repEl) repEl.textContent = baseRep + ' — ' + (mode === 'sat' ? '🛰 ماهواره ' : '⛰ توپوگرافی ') + p + '٪';
-            }).then(async (shots) => {
+          if (canCapture){
+            const updateCapture = (mode, p, meta) => {
+              if (generation !== kmlEditCaptureGeneration || !editKmlState || !editKmlState.captures[mode]) return;
+              const capture = editKmlState.captures[mode];
+              if (meta && typeof meta === 'object' && meta.complete){
+                capture.status = meta.ok ? 'done' : 'error';
+                capture.progress = meta.ok ? 100 : kmlPercent(p);
+                capture.message = meta.ok ? 'تصویر با موفقیت دریافت شد.' : 'دریافت تصویر کامل نشد؛ اتصال نقشه را بررسی و دوباره فایل را انتخاب کنید.';
+              } else {
+                capture.status = 'running';
+                capture.progress = kmlPercent(p);
+                capture.message = 'در حال دریافت کاشی‌های نقشه…';
+              }
+              renderKmlReportElement($('#ec-kml-rep'), editKmlState, true);
+            };
+            EarthShot.captureFor(geoId, g.bounds, updateCapture).then(async shots => {
+              const compacted = { sat:false, topo:false };
               if (shots && EarthShot.toCompact){
                 const cap = 360000;
-                const all = JSON.parse(localStorage.getItem('ga_course_geo') || '{}');
-                const rec = all[geoId];
-                if (rec){
-                  if (shots.sat && shots.sat.blob){ const img = await EarthShot.toCompact(shots.sat.blob, cap); if (img) rec.sat = Object.assign({}, rec.sat, { img }); }
-                  if (shots.topo && shots.topo.blob){ const imgT = await EarthShot.toCompact(shots.topo.blob, cap); if (imgT) rec.sat = Object.assign({}, rec.sat, { imgTopo: imgT }); }
-                  CourseGeo.set(geoId, rec);
-                }
+                try {
+                  const all = JSON.parse(localStorage.getItem('ga_course_geo') || '{}');
+                  const rec = all[geoId];
+                  if (rec){
+                    if (shots.sat && shots.sat.blob){ const img = await EarthShot.toCompact(shots.sat.blob, cap); if (img){ rec.sat = Object.assign({}, rec.sat, { img }); compacted.sat = true; } }
+                    if (shots.topo && shots.topo.blob){ const imgTopo = await EarthShot.toCompact(shots.topo.blob, cap); if (imgTopo){ rec.sat = Object.assign({}, rec.sat, { imgTopo }); compacted.topo = true; } }
+                    CourseGeo.set(geoId, rec);
+                  }
+                } catch(e){}
               }
-              if (repEl) repEl.textContent = baseRep + ' — 🛰 ماهواره ✓ ⛰ توپوگرافی ✓ (دائمی در رکورد ذخیره شد)';
-            }).catch(() => {});
+              if (generation === kmlEditCaptureGeneration && editKmlState){
+                ['sat','topo'].forEach(mode => {
+                  const capture = editKmlState.captures[mode];
+                  const ready = !!(shots && shots[mode] && shots[mode].blob);
+                  capture.status = ready ? 'done' : 'error';
+                  if (ready) capture.progress = 100;
+                  capture.message = ready ? (compacted[mode] ? 'تصویر دریافت و در رکورد زمین ذخیره شد.' : 'تصویر با موفقیت دریافت شد.') : 'دریافت تصویر کامل نشد؛ اتصال نقشه را بررسی و دوباره فایل را انتخاب کنید.';
+                });
+                renderKmlReportElement($('#ec-kml-rep'), editKmlState, true);
+              }
+              return shots;
+            }).catch(() => {
+              if (generation === kmlEditCaptureGeneration && editKmlState){
+                ['sat','topo'].forEach(mode => {
+                  const capture = editKmlState.captures[mode];
+                  if (capture.status !== 'done'){
+                    capture.status = 'error';
+                    capture.message = 'دریافت تصویر کامل نشد؛ اتصال نقشه را بررسی و دوباره فایل را انتخاب کنید.';
+                  }
+                });
+                renderKmlReportElement($('#ec-kml-rep'), editKmlState, true);
+              }
+            });
           }
           if (!r.base){
             try {
@@ -12622,9 +12893,19 @@ window.addEventListener('ga:brand-changed', function(){
             bindParEditor($('#ec-pars'), parVals, idxVals, distanceVals);
           }
           if (g.center){ $('#ec-lat').value = g.center.lat.toFixed(6); $('#ec-lng').value = g.center.lng.toFixed(6); }
-          $('#ec-kml-rep').textContent = `KML ذخیره شد: ${sm.holes} میدان · تی خانم ${sm.teesF} · تی آقا ${sm.teesM}`;
           APP.toast('نقشهٔ زمین از KML به‌روز شد ✓', 'green');
-        } catch(e){ APP.toast('خواندن KML ناموفق بود', 'red'); }
+        } catch(e){
+          try { console.error('ec-kml parse:', e); } catch(_){}
+          editKmlState = { error:true, message:'ساختار فایل KML خوانده نشد. قالب و سلامت فایل را بررسی و دوباره انتخاب کنید.' };
+          renderKmlReportElement($('#ec-kml-rep'), editKmlState, true);
+          APP.toast('خواندن KML ناموفق بود', 'red');
+        }
+      };
+      reader.onerror = function(){
+        if (generation !== kmlEditCaptureGeneration) return;
+        editKmlState = { error:true, message:'فایل خوانده نشد؛ دوباره انتخابش کنید یا از سالم‌بودن فایل مطمئن شوید.' };
+        renderKmlReportElement($('#ec-kml-rep'), editKmlState, true);
+        APP.toast('خواندن فایل ناموفق بود', 'red');
       };
       reader.readAsText(f);
     });
@@ -17114,13 +17395,19 @@ window.MIS_GOLF.sat={url:"mis_sat.webp?v=4",topo:"mis_topo.webp?v=4",south:31.89
     var b = expand(bounds);
     if (!b) return Promise.reject(Error('bounds missing'));
     var out = { sat: null, topo: null };
+    function reportComplete(mode, image){
+      if (typeof onProgress !== 'function') return;
+      try { onProgress(mode, image ? 100 : 0, { complete: true, ok: !!image }); } catch (e) {}
+    }
     return render('sat', b, onProgress).catch(function(){ return null; }).then(function(sat){
       out.sat = sat;
+      reportComplete('sat', sat);
       return sat ? idb('put', keyOf(key, 'sat'), { blob: sat.blob, meta: sat.meta }).catch(function(){}) : null;
     }).then(function(){
       return render('topo', b, onProgress).catch(function(){ return null; });
     }).then(function(topo){
       out.topo = topo;
+      reportComplete('topo', topo);
       return topo ? idb('put', keyOf(key, 'topo'), { blob: topo.blob, meta: topo.meta }).catch(function(){}) : null;
     }).then(function(){
       if (out.sat) urls.set(keyOf(key, 'sat'), URL.createObjectURL(out.sat.blob));
@@ -17701,7 +17988,12 @@ window.MIS_GOLF.sat={url:"mis_sat.webp?v=4",topo:"mis_topo.webp?v=4",south:31.89
         return `<option value="${n}">میدان ${n}${hh&&hh.par?(' • پار '+hh.par):''}${ix?(' • Index '+ix):''}${yd?(' • '+yd+' yd'):''}</option>`;
       }).join('');
       hole.value = holeSel;
-      hole.onchange = function(){ holeSel = hole.value; clubDraw=null; mode='pan'; drawCourse(); syncModeBtns(); };
+      hole.onchange = function(){
+        holeSel = hole.value;
+        if (holeSel === 'all' && wizStep === 'ready') wizStep = 'hole';
+        else if (holeSel !== 'all' && wizStep === 'hole'){ wizStep = 'ready'; wizEdit = -1; }
+        clubDraw=null; mode='pan'; drawCourse(); syncModeBtns(); renderWiz(); renderHist();
+      };
     }
     const club = document.getElementById('earth-club');
     if (club && !club.options.length){
@@ -17820,8 +18112,9 @@ window.MIS_GOLF.sat={url:"mis_sat.webp?v=4",topo:"mis_topo.webp?v=4",south:31.89
       holeSel = String(n);
       const sel = document.getElementById('earth-hole');
       if (sel) sel.value = holeSel;
+      if (wizStep === 'hole'){ wizStep = 'ready'; wizEdit = -1; }
       clubDraw=null; mode='pan';
-      drawCourse();
+      drawCourse(); renderWiz(); renderHist();
     };
   }
 
@@ -17939,6 +18232,24 @@ window.MIS_GOLF.sat={url:"mis_sat.webp?v=4",topo:"mis_topo.webp?v=4",south:31.89
         + '<div class="ew-actions"><button type="button" class="btn sm ghost" data-ew-hole="'+n+'">ویرایش این میدان</button></div></details>';
     }).join('')+'</div>';
   }
+  function courseHoleDistance(hole){
+    const n = Number(hole);
+    if (!Number.isSafeInteger(n) || n < 1) return null;
+    const D = window.Data;
+    if (!D || typeof D.distancesOf !== 'function') return null;
+    const distances = D.distancesOf(courseKey());
+    const raw = Array.isArray(distances) ? distances[n - 1] : null;
+    if (raw == null || String(raw).trim() === '') return null;
+    const value = Number(raw);
+    return Number.isFinite(value) && value >= 0 ? value : null;
+  }
+  function holeDistanceCard(hole){
+    const n = Number(hole);
+    const valid = Number.isSafeInteger(n) && n > 0;
+    const value = valid ? courseHoleDistance(n) : null;
+    const holeAttr = valid ? ' data-ew-distance-hole="' + n + '"' : '';
+    return '<div class="ew-distance-card" role="status" aria-live="polite"' + holeAttr + '><span>Distance</span><b>' + (value == null ? '—' : fa(value)) + '</b></div>';
+  }
   function vsStrokeColor(vs){
     if (window.Data && Data.scaleVsPar) return Data.scaleVsPar(vs);
     if (vs == null || !isFinite(vs)) return 'var(--muted)';
@@ -18030,7 +18341,7 @@ window.MIS_GOLF.sat={url:"mis_sat.webp?v=4",topo:"mis_topo.webp?v=4",south:31.89
     } else if (wizStep === 'ready'){
       const arr = holePlan();
       h = wizBack('hole','تغییر میدان')+'<div class="ew-head"><b>میدان '+holeSel+'</b><span>'+arr.length+' ضربه</span></div>'
-        + '<div class="ew-actions ew-main-acts"><button type="button" class="btn sm" id="ew-add">＋ افزودن ضربه</button><button type="button" class="btn sm" id="ew-lock">ثبت میدان</button></div>'
+        + '<div class="ew-actions ew-main-acts"><button type="button" class="btn sm" id="ew-add">＋ افزودن ضربه</button><button type="button" class="btn sm" id="ew-lock">ثبت میدان</button>'+holeDistanceCard(holeSel)+'</div>'
         + '<div class="ew-shots">'+(arr.length ? arr.map(function(sh,i){ return shotArticle(sh,i); }).join('') : '<div class="ew-empty">هنوز ضربه‌ای ثبت نشده.</div>')+'</div>'
         + '<div class="ew-actions"><button type="button" class="btn sm ghost" id="ew-rep-one">گزارش این میدان</button><button type="button" class="btn sm" id="ew-rep-all">گزارش کامل</button></div>';
     } else if (wizStep === 'club'){
@@ -18053,7 +18364,7 @@ window.MIS_GOLF.sat={url:"mis_sat.webp?v=4",topo:"mis_topo.webp?v=4",south:31.89
     box.querySelectorAll('[data-ew-back]').forEach(function(b){
       b.onclick = function(){
         const s = b.getAttribute('data-ew-back');
-        if (s==='hole'){ holeSel='all'; clubDraw=null; mode='pan'; drawCourse(); }
+        if (s==='hole'){ holeSel='all'; const sel=document.getElementById('earth-hole'); if(sel) sel.value='all'; clubDraw=null; mode='pan'; drawCourse(); }
         if (s==='ready'){ clubDraw=null; mode='pan'; clearPreview(); }
         if (s==='draw'){
           clubDraw = { club: wizDraft.club, color: wizDraft.color, pts: (wizDraft.pts||[]).slice() };
@@ -18065,6 +18376,7 @@ window.MIS_GOLF.sat={url:"mis_sat.webp?v=4",topo:"mis_topo.webp?v=4",south:31.89
     box.querySelectorAll('[data-ew-hole]').forEach(function(b){
       b.onclick = function(){
         holeSel = b.getAttribute('data-ew-hole');
+        const sel = document.getElementById('earth-hole'); if (sel) sel.value = holeSel;
         wizStep = 'ready'; wizEdit = -1;
         clubDraw=null; mode='pan';
         drawCourse(); renderWiz();
@@ -18081,7 +18393,8 @@ window.MIS_GOLF.sat={url:"mis_sat.webp?v=4",topo:"mis_topo.webp?v=4",south:31.89
         if (window.APP && APP.toast) APP.toast('اول حداقل یک ضربه ثبت کنید', 'orange');
         return;
       }
-      holeSel = 'all'; clubDraw = null; mode = 'pan'; wizEdit = -1; wizStep = 'hole';
+      holeSel = 'all'; const sel = document.getElementById('earth-hole'); if (sel) sel.value = 'all';
+      clubDraw = null; mode = 'pan'; wizEdit = -1; wizStep = 'hole';
       drawCourse(); renderWiz();
     };
     box.querySelectorAll('[data-ew-club]').forEach(function(b){
@@ -18133,7 +18446,7 @@ window.MIS_GOLF.sat={url:"mis_sat.webp?v=4",topo:"mis_topo.webp?v=4",south:31.89
     box.querySelectorAll('[data-ew-edit]').forEach(function(b){
       b.onclick = function(){
         const hn = b.getAttribute('data-ew-hn');
-        if (hn){ holeSel = String(hn); }
+        if (hn){ holeSel = String(hn); const sel=document.getElementById('earth-hole'); if(sel) sel.value=holeSel; }
         const i = +b.getAttribute('data-ew-edit'); const sh = holePlan()[i]; if (!sh) return;
         wizEdit=i; wizDraft={ club:sh.club||'', color:sh.color||'#D4AF37', pts:(sh.pts||[]).slice(), note:sh.note||'' };
         wizStep='club'; drawCourse(); renderWiz();
