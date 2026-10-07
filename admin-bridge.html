@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="fa">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<title>Putt Club — device bridge</title>
+<!--
+  پل حافظهٔ دستگاه بین پنل اعضا و ادمین‌پنل (PUTT_DEVICE_BRIDGE_V1)
+  ───────────────────────────────────────────────────────────────
+  یوزرها، اعتبار ورود بازیکنان و نسخه‌های «پشتیبان آکادمی» عمداً هرگز به ابر نمی‌روند
+  (cloud.js → SKIP) و فقط در localStorage همین دامنه روی همین دستگاه می‌مانند.
+  ادمین‌پنل (adminpanel.puttclub.ir) این صفحه را در یک iframe مخفی باز می‌کند تا روی
+  همان دستگاه، همان فهرستی را مدیریت کند که پنل اعضا برای ورود از آن استفاده می‌کند.
+  • فقط به پیام‌های خودِ ادمین‌پنل جواب می‌دهد (بررسی دقیق origin و parent).
+  • فقط همین سه کلید؛ هیچ کلید دیگری خوانده یا نوشته نمی‌شود.
+  • هیچ درخواست شبکه‌ای نمی‌فرستد.
+-->
+</head>
+<body>
+<script>
+(function () {
+  'use strict';
+  var ALLOWED = ['https://adminpanel.puttclub.ir'];
+  var KEYS = { ga_users: 1, ga_player_users: 1, ga_backup_slots: 1 };
+  var NS = 'putt-device-bridge';
+  if (window.parent === window) return;              /* only useful when embedded */
+
+  var parentOrigin = null;
+  function reply(msg) { if (parentOrigin) window.parent.postMessage(msg, parentOrigin); }
+
+  window.addEventListener('message', function (e) {
+    if (e.source !== window.parent || ALLOWED.indexOf(e.origin) < 0) return;
+    var m = e.data;
+    if (!m || m.ns !== NS || typeof m.op !== 'string') return;
+    parentOrigin = e.origin;
+    var out = { ns: NS, id: m.id, ok: true };
+    try {
+      if (m.op === 'hello') {
+        out.op = 'hello';
+      } else if (m.op === 'get') {
+        out.values = {};
+        (Array.isArray(m.keys) ? m.keys : []).forEach(function (k) {
+          if (KEYS[k] === 1) out.values[k] = localStorage.getItem(k);
+        });
+      } else if (m.op === 'set') {
+        var vals = m.values && typeof m.values === 'object' ? m.values : {};
+        Object.keys(vals).forEach(function (k) {
+          if (KEYS[k] !== 1) return;
+          var v = vals[k];
+          if (v === null) localStorage.removeItem(k);
+          else localStorage.setItem(k, String(v));
+        });
+      } else {
+        throw new Error('unknown op');
+      }
+    } catch (err) {
+      out.ok = false;
+      out.error = String((err && (err.name + ': ' + err.message)) || err);
+    }
+    reply(out);
+  });
+
+  /* A members-panel tab on this device changed one of the keys → tell the adminpanel. */
+  window.addEventListener('storage', function (e) {
+    if (!e.key || KEYS[e.key] !== 1) return;
+    reply({ ns: NS, op: 'changed', key: e.key, value: e.newValue });
+  });
+
+  ALLOWED.forEach(function (o) {
+    try { window.parent.postMessage({ ns: NS, op: 'ready' }, o); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

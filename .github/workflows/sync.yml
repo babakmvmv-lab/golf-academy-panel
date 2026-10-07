@@ -32,6 +32,14 @@ jobs:
           done
           printf '%s' '<!doctype html><html lang="fa"><head><meta charset="utf-8"><title>پنل اعضا</title><meta http-equiv="refresh" content="0; url=./"></head><body><script>location.replace("./");</script></body></html>' > GolfAcademy_PRO.html
           cp GolfAcademy_PRO.html 404.html
+      - name: Members-only panel (management lives on adminpanel.puttclub.ir)
+        # فقط بخش‌های فهرست‌شده در members-only/moved.json از پنل اعضا برداشته می‌شوند؛
+        # کد برنامه در golf-academy-pro دست نمی‌خورد و ادمین‌پنل نسخهٔ کامل را می‌سازد.
+        run: |
+          set -e
+          python3 members-only/inject.py index.html
+          grep -q 'PUTT_MEMBERS_ONLY:BEGIN' index.html
+          test -f admin-bridge.html
       - name: Commit if changed
         run: |
           git config user.name "sync-bot"
