@@ -23,7 +23,7 @@ def main(path):
         sys.exit('guard.js: __MOVED__ placeholder missing')
     guard = guard.replace('__MOVED__', json.dumps(moved))
     html = open(path, encoding='utf-8').read()
-    html = re.sub(re.escape(BEGIN) + r'.*?' + re.escape(END) + r'\n?', '', html, flags=re.S)
+    html = re.sub(r'\n?' + re.escape(BEGIN) + r'.*?' + re.escape(END) + r'\n?', '', html, flags=re.S)
     marker = '<meta charset="UTF-8">'
     if html.count(marker) < 1:
         sys.exit('inject: <meta charset="UTF-8"> not found')
