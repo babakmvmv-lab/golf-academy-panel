@@ -25,6 +25,14 @@ def main(path):
     if '__MOVED__' not in guard:
         sys.exit('guard.js: __MOVED__ placeholder missing')
     guard = guard.replace('__MOVED__', json.dumps(moved))
+    # نقش مدیر: تب‌های «پنل مدیریت» که مدیر در همین پنل می‌بیند (admin.json؛ [[tab, عنوان], …])
+    admin_path = os.path.join(HERE, 'admin.json')
+    admin = json.load(open(admin_path, encoding='utf-8')) if os.path.exists(admin_path) else []
+    if not isinstance(admin, list) or any(not (isinstance(a, list) and len(a) == 2 and a[0] in TABS and isinstance(a[1], str) and a[1]) for a in admin) or len({a[0] for a in admin}) != len(admin):
+        sys.exit('admin.json: expected [[tab, title], …] with unique tabs from %s' % TABS)
+    if '__ADMIN__' not in guard:
+        sys.exit('guard.js: __ADMIN__ placeholder missing')
+    guard = guard.replace('__ADMIN__', json.dumps(admin, ensure_ascii=False))
     html = open(path, encoding='utf-8').read()
     html = re.sub(r'\n?' + re.escape(BEGIN) + r'.*?' + re.escape(END) + r'\n?', '', html, flags=re.S)
     marker = '<meta charset="UTF-8">'
@@ -33,7 +41,7 @@ def main(path):
     block = BEGIN + '<script>' + guard + '</script>' + END + '\n'
     html = html.replace(marker, marker + '\n' + block, 1)
     open(path, 'w', encoding='utf-8').write(html)
-    print('members-only guard:', moved or '(none moved yet)')
+    print('members-only guard:', moved or '(none moved yet)', '| admin tabs:', [a[0] for a in admin])
 
 if __name__ == '__main__':
     main(sys.argv[1] if len(sys.argv) > 1 else 'index.html')
