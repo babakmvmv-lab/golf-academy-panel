@@ -3,7 +3,8 @@
 
     python3 members-only/inject.py index.html
 
-Reads members-only/moved.json (list of page ids moved to adminpanel.puttclub.ir)
+Reads members-only/moved.json (page ids and «پنل مدیریت» tab ids `mgmt:<tab>` moved to
+adminpanel.puttclub.ir)
 and places guard.js inline right after <meta charset="UTF-8">, i.e. before every
 app script. Re-running replaces the previous block, so the sync workflow and
 manual stages can both call it safely.
@@ -12,7 +13,9 @@ import json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 BEGIN, END = '<!--PUTT_MEMBERS_ONLY:BEGIN-->', '<!--PUTT_MEMBERS_ONLY:END-->'
-VALID = {'mgmt', 'users', 'subs', 'settings', 'backup', 'messages'}
+TABS = ['academy', 'players', 'courses', 'tournaments', 'programs', 'results', 'calendar', 'reception',
+        'contact', 'info', 'users', 'coins', 'honor', 'shop', 'battle', 'avatars', 'labels']
+VALID = {'mgmt', 'users', 'subs', 'settings', 'backup', 'messages'} | {'mgmt:' + t for t in TABS}
 
 def main(path):
     moved = json.load(open(os.path.join(HERE, 'moved.json'), encoding='utf-8'))
