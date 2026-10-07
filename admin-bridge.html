@@ -7,7 +7,7 @@
 <!--
   پل حافظهٔ دستگاه بین پنل اعضا و ادمین‌پنل (PUTT_DEVICE_BRIDGE_V1)
   ───────────────────────────────────────────────────────────────
-  یوزرها، اعتبار ورود بازیکنان و نسخه‌های «پشتیبان آکادمی» عمداً هرگز به ابر نمی‌روند
+  نسخه‌های «پشتیبان آکادمی» عمداً هرگز به ابر نمی‌روند (حساب‌ها از 2026-10-07 در ابرند: ga_accounts)
   (cloud.js → SKIP) و فقط در localStorage همین دامنه روی همین دستگاه می‌مانند.
   ادمین‌پنل (adminpanel.puttclub.ir) این صفحه را در یک iframe مخفی باز می‌کند تا روی
   همان دستگاه، همان فهرستی را مدیریت کند که پنل اعضا برای ورود از آن استفاده می‌کند.
@@ -21,7 +21,7 @@
 (function () {
   'use strict';
   var ALLOWED = ['https://adminpanel.puttclub.ir'];
-  var KEYS = { ga_users: 1, ga_player_users: 1, ga_backup_slots: 1 };
+  var KEYS = { ga_backup_slots: 1 };   /* accounts moved to the cloud (ga_accounts, 2026-10-07): ga_users/ga_player_users are never handed out */
   var NS = 'putt-device-bridge';
   if (window.parent === window) return;              /* only useful when embedded */
 
