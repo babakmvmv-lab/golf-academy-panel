@@ -3984,7 +3984,10 @@ svg.leaflet-image-layer.leaflet-interactive path {
     'ga_player_users': 1,
     /* پیش‌پرکردن فرم ورود همین دستگاه — نباید روی ابر برود (نام آخرین یوزر را برای همه فاش می‌کرد) */
     'ga_last_user': 1,
-    'ga_user_label': 1
+    'ga_user_label': 1,
+    /* دروازهٔ زمان (ga_epoch) و کشِ محلیِ آن: فقط خواندنی، هرگز از دستگاه به ابر نمی‌رود */
+    'ga_epoch': 1,
+    '__ga_epoch': 1
   };
 
   /* ── هویت و مجوز نوشتن (حساب‌های ابری 2026-10-07) ──
@@ -4230,6 +4233,43 @@ svg.leaflet-image-layer.leaflet-interactive path {
   var TOUR_DEL_DAYS = 180;
   var RES_DEL = 'ga_results_del';
   var metaFlight = null, lastMeta = {};   /* دیدبانی سبک: «کدام کلید کِی عوض شد» */
+
+  /* ── دروازهٔ زمان (epoch) ────────────────────────────────────────────────────
+     مدیرِ سرور یک برچسب زمانی می‌گذارد (کلید ga_epoch در ga_store). هر دستگاهی که پس از آن
+     برچسب هنوز نتوانسته کلیدی را با سرور هم‌تراز کند، «کهنه» است: دادهٔ محلی‌اش (کشِ دیروز،
+     نسخهٔ بذر، صفِ ارسال‌نشده) حق ندارد با دادهٔ سرور ادغام شود یا آن را بازنویسی کند؛
+     فقط نسخهٔ سرور می‌نشیند. تغییرِ تازه‌ای که کاربر بعد از برچسب بزند «تازه» است و مثل قبل
+     ادغام/ارسال می‌شود. نتیجه: دادهٔ امروز دست‌نخورده می‌ماند و از این به بعد هم چیزی کهنه
+     نمی‌تواند چیزی تازه را پاک کند. */
+  var epochMs = (function () {
+    var t = Date.parse((function () { try { return JSON.parse(ls().getItem('__ga_epoch') || 'null'); } catch (e) { return null; } }()) || '');
+    return Number.isFinite(t) ? t : 0;
+  })();
+  function setEpoch(v) {
+    var at = Date.parse((v && (v.at || v.updated_at)) || '');
+    if (!Number.isFinite(at) || at <= 0) return;
+    /* فقط جلو می‌رود؛ برچسب قدیمی‌تر هرگز این دروازه را عقب نمی‌کشد */
+    if (at <= epochMs) return;
+    epochMs = at;
+    try { ls().setItem('__ga_epoch', JSON.stringify({ at: new Date(at).toISOString() })); } catch (e) {}
+  }
+  /* کِی این دستگاه با سرور هم‌تراز شد؟ tsStamp = آخرین نسخهٔ سروری که دیدیم */
+  function syncedSinceEpoch(tsStamp) {
+    if (!epochMs) return true;                    /* برچسبی نیست ⇒ رفتار قبلی */
+    var t = Date.parse(tsStamp || '');
+    return Number.isFinite(t) && t >= epochMs;
+  }
+  function editedSinceEpoch(dirtyStamp) {
+    var t = Date.parse(dirtyStamp || '');
+    return Number.isFinite(t) && t >= epochMs;
+  }
+  /* کلید «کهنه» است اگر: برچسب زمان داریم، این دستگاه پس از برچسب با سرور هم‌تراز نشده
+     و کاربر هم پس از برچسب تغییری روی آن نزده باشد. */
+  function isStaleKey(k, dirtyStamp, tsStamp) {
+    if (!epochMs) return false;
+    if (editedSinceEpoch(dirtyStamp)) return false;
+    return !syncedSinceEpoch(tsStamp);
+  }
   function normText(s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim().toLowerCase(); }
   function djb2(s) {
     var h = 5381;
@@ -4553,6 +4593,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
       .then(function (rows) {
         if (!Array.isArray(rows)) throw new Error('پاسخ دریافت داده معتبر نیست.');
         if (!only) lastMeta = {};   /* دریافت کامل = تصویر کامل سرور */
+        (rows || []).forEach(function (r) { if (r && r.k === 'ga_epoch') setEpoch(r.v); });
         (rows || []).forEach(function (r) { if (r && r.k && !SKIP[r.k]) lastMeta[r.k] = r.updated_at; });
         applying = true; // نگهبانِ محلی حین اعمال خاموش است
         try {
@@ -4561,6 +4602,15 @@ svg.leaflet-image-layer.leaflet-interactive path {
             if (!r || !r.k || SKIP[r.k]) return;
             var remoteNewer = !ts[r.k] || !sameStamp(r.updated_at, ts[r.k]);
             var localDirty = d[r.k];
+            /* کهنه = هرگز پس از برچسب با سرور هم‌تراز نشده و کاربر هم تغییری نزده.
+               صفِ کهنه در «پارک» (فقط محلی، برای بازیابی دستی) کنار گذاشته می‌شود و
+               نسخهٔ سرور — که دادهٔ امروز است — می‌نشیند. */
+            var stale = isStaleKey(r.k, localDirty, ts[r.k]);
+            if (stale && localDirty) {
+              park(r.k, L.getItem(r.k), localDirty);
+              try { delete d[r.k]; } catch (e) {}
+              localDirty = undefined;
+            }
             if (localDirty && authorized && role() === 'member' && !canWrite(r.k)) {
               park(r.k, L.getItem(r.k), localDirty);
               delete d[r.k];
@@ -4586,7 +4636,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
               }
               return;
             }
-            if ((COURSE_MERGE[r.k] || SUB_MERGE[r.k]) && !authorized) {
+            if (!stale && (COURSE_MERGE[r.k] || SUB_MERGE[r.k]) && !authorized) {
               /* داده‌های چندرکوردی را هنگام pull هم merge کن تا رکوردهای محلیِ غایب
                  از ابر حذف نشوند. اشتراک‌ها بر اساس id ادغام می‌شوند، نه کلید آرایه. */
               var localRaw = L.getItem(r.k), remoteVal = decode(r.v);
@@ -4605,8 +4655,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
               } catch (e) {}
               return;
             }
-            /* ── مسابقات: ادغام اتحادی، نه رونویسی ── */
-            if (r.k === TOUR_KEY) {
+            /* ── مسابقات: ادغام اتحادی، نه رونویسی (مگر نسخهٔ محلی «کهنه» باشد) ── */
+            if (r.k === TOUR_KEY && !stale) {
               try {
                 var remoteTours = decode(r.v);
                 var mergedTours = mergeTourList(L.getItem(TOUR_KEY), remoteTours, readTourDel());
@@ -4624,7 +4674,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
               return;
             }
             /* ── سیاههٔ حذفِ نتایج: همان رفتار اجتماع ── */
-            if (r.k === RES_DEL) {
+            if (r.k === RES_DEL && !stale) {
               try {
                 var mergedRdel = unionTourDel(readDelList(RES_DEL), parseTourList(decode(r.v)));
                 var rdelTxt = JSON.stringify(mergedRdel);
@@ -4634,7 +4684,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
               return;
             }
             /* ── سیاههٔ حذفِ مسابقات: فقط اجتماع (حذفِ یک دستگاه در دستگاه دیگر زنده نشود) ── */
-            if (r.k === TOUR_DEL) {
+            if (r.k === TOUR_DEL && !stale) {
               try {
                 var mergedDel = unionTourDel(readTourDel(), parseTourList(decode(r.v)));
                 var delTxt = JSON.stringify(mergedDel);
@@ -4896,6 +4946,14 @@ svg.leaflet-image-layer.leaflet-interactive path {
       var stamp, raw, row, bytes = 0;
       /* تغییری که پیش از ارسال به همان مقدار شناخته‌شدهٔ سرور برگشت (مثلاً تمرین‌های legacy که هنگام ورود
          موقتاً اضافه و بلافاصله دوباره جدا می‌شوند) چیزی برای ارسال ندارد؛ بدون درخواست از صف خارج می‌شود. */
+      /* صفِ کهنه (پیش از برچسب زمان) هرگز ارسال نمی‌شود: همان نسخه‌ای است که دادهٔ
+         قدیمی را برمی‌گرداند. در «پارک» نگه داشته می‌شود تا دستی قابل بازیابی باشد. */
+      if (isStaleKey(k, jread(DIRTY_KEY, {})[k], jread(TS_KEY, {})[k])) {
+        var dq0 = jread(DIRTY_KEY, {});
+        park(k, L.getItem(k), dq0[k]);
+        delete dq0[k]; jwrite(DIRTY_KEY, dq0); sweepCache[k] = L.getItem(k);
+        return Promise.resolve();
+      }
       if (sameAsSynced(k)) {
         var dq = jread(DIRTY_KEY, {});
         if (dq[k]) { delete dq[k]; jwrite(DIRTY_KEY, dq); sweepCache[k] = L.getItem(k); }
@@ -6935,15 +6993,8 @@ window.IR_HOLIDAYS_1405 = IR_HOLIDAYS_1405;
       const ed = {};
       Object.keys(births).forEach(pid => { ed[pid] = { birth: births[pid] }; });
       localStorage.setItem('ga_players', JSON.stringify(ed));
-      // نتایج مسابقات برگزارشده: اول بابک، دوم مهشید، سوم متناوب ستایش/روشا — همهٔ اعضا شرکت‌کننده
-      const ALL = [1,2,3,4,5,6,7,8];
-      const res = {};
-      TOURNAMENTS.forEach((t, ti) => {
-        if (isTourHidden(t[0])) return;
-        if (dateFrom(t[5]) >= TODAY) return;
-        res[t[0]] = { participants: ALL.slice(), top: { 1: 1, 2: 2, 3: (ti % 2 === 0 ? 6 : 7) } };
-      });
-      localStorage.setItem('ga_results', JSON.stringify(res));
+      /* نتایجِ مسابقات دیگر هرگز «بذر» نمی‌شود: نتایج دادهٔ واقعی است و تولید نسخهٔ ساختگی
+         همان چیزی بود که می‌توانست بعداً روی ابر بنشیند و نتیجهٔ واقعی را بازنویسی کند. */
       // دوره‌ها: هیچ بذری ثبت نمی‌شود — مدیر همهٔ دوره‌ها/تمرین‌ها را خودش دستی (پنل مدیریت → دوره‌ها) وارد می‌کند
       localStorage.setItem('ga_seed_v2', '1405');
     } catch(e){}
@@ -13894,7 +13945,19 @@ window.addEventListener('ga:brand-changed', function(){
         saveCustomPlayers(lst);
       } else {
         const ed = playerEdits();
-        ed[pid] = Object.assign({}, ed[pid], { name: d.name, family: d.family, gender: d.gender, hcp: d.hcp, join: d.join,
+        /* فیلدِ خالی، مقدارِ موجود را پاک نمی‌کند: ویرایش‌گری که فرمش کامل پر نشده بود
+           (مثلاً فیلدهای شخصیِ بازیکن هنوز روی آن دستگاه نیامده بود) نباید تلفن/کد ملی/آدرس را
+           پاک کند. برای پاک‌کردن، باید مقدار تازه نوشته شود — نه خالی. */
+        const keepEmpty = ['name','family','gender','hcp','join','birth','phone','national','email','address','father','fatherPhone','mother','motherPhone'];
+        const prevEd = ed[pid] || {};
+        const merged = Object.assign({}, prevEd);
+        keepEmpty.forEach(function (f) {
+          const nv = d[f];
+          const blank = nv === undefined || nv === null || (typeof nv === 'string' && !nv.trim());
+          if (blank && prevEd[f] !== undefined && String(prevEd[f] || '').trim() !== '') return;
+          merged[f] = nv;
+        });
+        ed[pid] = Object.assign(merged, { name: d.name, family: d.family, gender: d.gender, hcp: d.hcp, join: d.join,
           birth: d.birth, phone: d.phone, national: d.national, email: d.email, address: d.address,
           father: d.father, fatherPhone: d.fatherPhone, mother: d.mother, motherPhone: d.motherPhone, photo });
         savePlayerEdits(ed);
